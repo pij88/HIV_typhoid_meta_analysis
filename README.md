@@ -1,6 +1,6 @@
 # HIV & Typhoid / iNTS Systematic Review — Reproducible Code & Data
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.XXXXXXX.svg)](https://doi.org/10.5281/zenodo.XXXXXXX)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15463296.svg)](https://doi.org/10.5281/zenodo.15463296)
 
 This repository hosts the **Quarto analysis, extracted datasets, and derived figures** that support the manuscript:
 
