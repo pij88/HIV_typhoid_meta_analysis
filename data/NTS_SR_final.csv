@@ -1,0 +1,14 @@
+Study_ID,Cohort,Publication_year,Median_year,NTS_HIV,Total_HIV,NTS_NO_HIV,Total_NO_HIV,quality,Country,Start,End
+"Archibald et al.,",Adult,1998,,23,282,6,235,Moderate,Tanzania,Feb-95,Apr-95
+"Batchelor et al.,",Adult,1996,,60,2623,7,2006,High,Kenya,Nov-88,Oct-92
+"Biggs et al.,",Paediatric,2014,,9,202,154,4102,Moderate,Tanzania,Jun-06,Aug-08
+"Blomberg et al.,",Paediatric,2007,,7,155,10,756,Low,Tanzania,Aug-01,Aug-02
+"Crump et al., (paediatric) ",Paediatric,2011,,1,57,0,341,Low,Tanzania,Sep-07,Aug-08
+"Crump et al., (adults) ",Adult,2011,,2,161,0,244,Low,Tanzania,Sep-07,Aug-08
+"Grant et al., ",Adult,1997,,23,199,1,51,High,Côte d'Ivoire,Mar-95,Jul-95
+"Kassa-Kelembho et al.,",Adult,2003,,22,116,0,15,Moderate,Central African Republic,Apr-99,Jul-99
+"Meremo et al., ",Adult,2012,,12,156,1,190,Low,Tanzania,Jun-11,Dec-11
+"Mtove et al.,",Paediatric,2010,,2,67,43,787,Low,Tanzania,Mar-08,Feb-09
+"Obaro et al.,",Paediatric,2011,,0,32,8,937,Moderate,Nigeria,Sep-08,Nov-09
+"Phe et al.,",Adult,2013,,16,976,8,4481,Moderate,Kenya,Apr-12,Mar-14
+"Vugia et al.,",Adult,1993,,16,202,1,117,High,Côte d'Ivoire,May-91,Jun-91

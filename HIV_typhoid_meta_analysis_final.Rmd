@@ -1,0 +1,495 @@
+---
+title: "Final SR analysis"
+format: html
+execute:
+  freeze: auto   # keeps rendered output up-to-date when code changes
+---
+
+```{r setup}
+# ─────────────────────────────────────────────
+# Load packages
+# ─────────────────────────────────────────────
+library(tidyverse)
+library(meta)
+library(metafor)
+library(lubridate)
+library(here)
+
+# ─────────────────────────────────────────────
+# Create / check output directories
+# ─────────────────────────────────────────────
+fig_dir  <- here("output", "figures")
+data_dir <- here("output", "processed_data")
+
+if (!dir.exists(fig_dir))  dir.create(fig_dir,  recursive = TRUE)
+if (!dir.exists(data_dir)) dir.create(data_dir, recursive = TRUE)
+
+
+# ─────────────────────────────────────────────
+# Read in the data for typhoid & NTS
+# ─────────────────────────────────────────────
+typhoid <- read_csv(here("data", "TF_data_final.csv"), show_col_types = FALSE)
+NTS     <- read_csv(here("data", "NTS_SR_final.csv"), show_col_types = FALSE)
+
+# ─────────────────────────────────────────────
+# Meta-analysis of 17 papers for typhoid
+# ─────────────────────────────────────────────
+meta_analysis_TF <- metabin(
+  event.e   = TF_HIV,
+  n.e       = Total_HIV,
+  event.c   = TF_NO_HIV,
+  n.c       = Total_NO_HIV,
+  studlab   = Study_ID,
+  data      = typhoid,
+  sm        = "OR",
+  method.tau = "REML"
+)
+
+plot_forest_TF <- function() {
+  forest(meta_analysis_TF,
+         sortvar  = TE,
+         xlab     = "Odds Ratio (log scale)",
+         leftcols = c("studlab","Publication_year","event.e","n.e","event.c","n.c"),
+         leftlabs = c("Authors","Year","TF (PLHIV)","No TF","TF (HIV-)","No TF"),
+         rightcols = c("effect","ci"),
+         rightlabs = c("OR","95% CI"),
+         xlim     = c(0.01,10),
+         alim     = c(0.01,10),
+         clip     = c(0.01,10),
+         print.tau2 = TRUE,
+         print.I2   = TRUE,
+         common   = FALSE,
+         label.e  = "PLHIV",
+         label.c  = "HIV-negative",
+         col.square = "#af8dc3",
+         col.diamond = "#7fbf7b",
+         cex.lab  = 1.2,
+         lwd.xaxis = 0,
+         spacing  = 1.25,
+         colgap.forest.left = "1.5cm",
+         colgap.left        = "0.5cm",
+         colgap.forest.right = "1.5cm")
+}
+
+# High-res TIFF (peer-review)
+tiff(file = file.path(fig_dir, "Figure2_Typhoid_ForestPlot.tiff"),
+     width = 14, height = 8, units = "in", res = 600, compression = "lzw")
+plot_forest_TF()
+dev.off()
+
+# Vector PDF (publication)
+pdf(file = file.path(fig_dir, "Figure2_Typhoid_ForestPlot.pdf"),
+    width = 14, height = 8)
+plot_forest_TF()
+dev.off()
+
+# ─────────────────────────────────────────────
+# Funnel plot & bias test (typhoid)
+# ─────────────────────────────────────────────
+png(file.path(fig_dir, "funnel_plot_typhoid.png"), width = 8, height = 6,
+    units = "in", res = 300)
+funnel(meta_analysis_TF,
+       xlab = "Odds Ratio",
+       ylab = "Standard Error",
+       studlab = FALSE,
+       col = "blue")
+dev.off()
+
+metabias(meta_analysis_TF, method = "linreg")
+
+# ─────────────────────────────────────────────
+# Meta-analysis for the NTS studies
+# ─────────────────────────────────────────────
+meta_analysis_NTS <- metabin(
+  event.e   = NTS_HIV,
+  n.e       = Total_HIV,
+  event.c   = NTS_NO_HIV,
+  n.c       = Total_NO_HIV,
+  studlab   = Study_ID,
+  data      = NTS,
+  sm        = "OR",
+  method.tau = "REML"
+)
+
+plot_forest_NTS <- function() {
+  forest(meta_analysis_NTS,
+         sortvar  = TE,
+         xlab     = "Odds Ratio (log scale)",
+         leftcols = c("studlab","Publication_year","event.e","n.e","event.c","n.c"),
+         leftlabs = c("Authors","Year","iNTS (PLHIV)","No iNTS","iNTS (HIV-)","No iNTS"),
+         rightcols = c("effect","ci"),
+         rightlabs = c("OR","95% CI"),
+         xlim     = c(0.01,20),
+         alim     = c(0.01,19),
+         clip     = c(0.01,10),
+         print.tau2 = TRUE,
+         print.I2   = TRUE,
+         common   = FALSE,
+         label.e  = "PLHIV",
+         label.c  = "HIV-negative",
+         col.square = "#ffffb3",
+         col.diamond = "#80b1d3",
+         cex.lab  = 1.2,
+         lwd.xaxis = 0,
+         spacing  = 1.25,
+         colgap.forest.left = "1.5cm",
+         colgap.left        = "0.5cm",
+         colgap.forest.right = "1.5cm")
+}
+
+# High-res TIFF
+tiff(file.path(fig_dir, "Figure3_iNTS_ForestPlot.tiff"),
+     width = 14, height = 8, units = "in", res = 600, compression = "lzw")
+plot_forest_NTS()
+dev.off()
+
+# Vector PDF
+pdf(file.path(fig_dir, "Figure3_iNTS_ForestPlot.pdf"),
+    width = 14, height = 8)
+plot_forest_NTS()
+dev.off()
+# ─────────────────────────────────────────────
+# Funnel plot & bias test (NTS)
+# ─────────────────────────────────────────────
+png(file.path(fig_dir, "funnel_plot_NTS.png"), width = 8, height = 6,
+    units = "in", res = 300)
+funnel(meta_analysis_NTS,
+       xlab = "Odds Ratio",
+       ylab = "Standard Error",
+       studlab = FALSE,
+       col = "blue")
+dev.off()
+
+metabias(meta_analysis_NTS, method = "linreg")
+
+# ─────────────────────────────────────────────
+# Typhoid: subgroup by Risk-of-Bias rating
+# ─────────────────────────────────────────────
+colnames(typhoid)[colnames(typhoid) == "quality"] <- "Risk of Bias"
+typhoid$`Risk of Bias` <- factor(typhoid$`Risk of Bias`,
+                                 levels = c("Low", "Moderate", "High"))
+
+meta_analysis_TF_subgroup <- metabin(
+  event.e   = TF_HIV,
+  n.e       = Total_HIV,
+  event.c   = TF_NO_HIV,
+  n.c       = Total_NO_HIV,
+  studlab   = Study_ID,
+  data      = typhoid,
+  sm        = "OR",
+  method.tau = "DL",
+  subgroup  = `Risk of Bias`
+)
+
+png(file.path(fig_dir, "quality_assessment_forest.png"),
+    width = 14, height = 10, units = "in", res = 300)
+forest(meta_analysis_TF_subgroup,
+       sortvar = TE,
+       xlab    = "Odds Ratio",
+       leftcols  = c("studlab","Publication_year","event.e","n.e","event.c","n.c"),
+       leftlabs  = c("Authors","Year","TF","No TF","TF","No TF"),
+       rightcols = c("effect","ci"),
+       rightlabs = c("OR","95% CI"),
+       xlim   = c(0.01,10), alim = c(0.01,10), clip = c(0.01,10),
+       print.tau2 = TRUE, print.I2 = TRUE,
+       common = FALSE,
+       label.e = "PLHIV", label.c = "HIV-negative",
+       col.square = "#af8dc3", col.diamond = "#7fbf7b",
+       cex.lab = 1.2, lwd.xaxis = 0, spacing = 1.25,
+       colgap.forest.left = "1.5cm", colgap.left = "0.5cm",
+       colgap.forest.right = "1.5cm")
+dev.off()
+
+# ─────────────────────────────────────────────
+# Typhoid: paediatric vs adult studies
+# ─────────────────────────────────────────────
+colnames(typhoid)[colnames(typhoid) == "Cohort"] <- "Study Population"
+typhoid$`Study Population` <- factor(typhoid$`Study Population`,
+                                     levels = c("Paediatric", "Adult"))
+
+meta_analysis_TF_paeds_adult <- metabin(
+  event.e   = TF_HIV,
+  n.e       = Total_HIV,
+  event.c   = TF_NO_HIV,
+  n.c       = Total_NO_HIV,
+  studlab   = Study_ID,
+  data      = typhoid,
+  sm        = "OR",
+  method.tau = "DL",
+  subgroup  = `Study Population`
+)
+
+# TIFF & PDF outputs
+tiff(file.path(fig_dir, "Figure5_Paeds_vs_Adults_ForestPlot.tiff"),
+     width = 14, height = 10, units = "in", res = 600, compression = "lzw")
+forest(meta_analysis_TF_paeds_adult, sortvar = TE, xlab = "Odds Ratio (log scale)",
+       leftcols = c("studlab","Publication_year","event.e","n.e","event.c","n.c"),
+       leftlabs = c("Authors","Year","TF (PLHIV)","No TF","TF (HIV-)","No TF"),
+       rightcols = c("effect","ci"), rightlabs = c("OR","95% CI"),
+       xlim = c(0.01,10), alim = c(0.01,10), clip = c(0.01,10),
+       print.tau2 = TRUE, print.I2 = TRUE,
+       common = FALSE, label.e = "PLHIV", label.c = "HIV-negative",
+       col.square = "#af8dc3", col.diamond = "#7fbf7b",
+       cex.lab = 1.2, spacing = 1.25,
+       colgap.forest.left = "1.5cm", colgap.left = "1.5cm",
+       colgap.forest.right = "1.5cm")
+dev.off()
+
+pdf(file.path(fig_dir, "Figure5_Paeds_vs_Adults_ForestPlot.pdf"),
+    width = 14, height = 10)
+forest(meta_analysis_TF_paeds_adult, sortvar = TE, xlab = "Odds Ratio (log scale)",
+       leftcols = c("studlab","Publication_year","event.e","n.e","event.c","n.c"),
+       leftlabs = c("Authors","Year","TF (PLHIV)","No TF","TF (HIV-)","No TF"),
+       rightcols = c("effect","ci"), rightlabs = c("OR","95% CI"),
+       xlim = c(0.01,10), alim = c(0.01,10), clip = c(0.01,10),
+       print.tau2 = TRUE, print.I2 = TRUE,
+       common = FALSE, label.e = "PLHIV", label.c = "HIV-negative",
+       col.square = "#af8dc3", col.diamond = "#7fbf7b",
+       cex.lab = 1.2, spacing = 1.25,
+       colgap.forest.left = "1.5cm", colgap.left = "1.5cm",
+       colgap.forest.right = "1.5cm")
+dev.off()
+
+# ─────────────────────────────────────────────
+# Meta-regression prep: collection midpoint & duration
+# ─────────────────────────────────────────────
+typhoid <- typhoid %>%
+  mutate(Start_date  = my(Start),
+         End_date    = my(End),
+         collection_midpoint = floor_date(Start_date + (End_date - Start_date)/2, "month"),
+         collection_midpoint = format(collection_midpoint, "%Y-%m"),
+         study_duration = as.numeric(End_date - Start_date)/365)
+
+meta_analysis_TF$data$collection_midpoint <- typhoid$collection_midpoint
+meta_analysis_TF$data$study_duration      <- typhoid$study_duration
+meta_reg <- metareg(meta_analysis_TF, ~ collection_midpoint + study_duration)
+summary(meta_reg)
+
+# ─────────────────────────────────────────────
+# Bubble plot for meta-regression
+# ─────────────────────────────────────────────
+meta_data <- meta_analysis_TF$data
+meta_data$predicted_logOR <- predict(meta_reg)$pred
+meta_data$predicted_OR    <- exp(meta_data$predicted_logOR)
+meta_data$weights         <- 1 / meta_analysis_TF$w.random
+meta_data$weights_scaled  <- sqrt(meta_data$weights) /
+                             max(sqrt(meta_data$weights)) * 10
+
+lm_fit <- lm(predicted_logOR ~ collection_midpoint, data = meta_data)
+regression_line <- tibble(
+  collection_midpoint = seq(min(meta_data$collection_midpoint),
+                            max(meta_data$collection_midpoint), length.out = 100)
+) %>%
+  mutate(predicted_logOR = predict(lm_fit, newdata = .),
+         predicted_OR    = exp(predicted_logOR))
+
+p <- ggplot(meta_data,
+            aes(x = collection_midpoint, y = predicted_OR)) +
+  geom_point(aes(size = weights_scaled), alpha = 0.7, colour = "#0072B2") +
+  geom_line(data = regression_line,
+            aes(x = collection_midpoint, y = predicted_OR),
+            colour = "#D55E00", linetype = "dashed", linewidth = 1.2) +
+  theme_minimal() +
+  scale_y_continuous(trans = "log",
+                     breaks = c(0.5,1,2,5,10)) +
+  labs(title = "Meta-Regression: Effect Size vs. Collection Midpoint",
+       x = "Collection Midpoint (Year)",
+       y = "Predicted Odds Ratio",
+       size = "Study Weight")
+
+print(p)
+
+ggsave(file.path(fig_dir, "bubble_plot.png"),
+       width = 10, height = 7, units = "in", dpi = 300, bg = "white")
+
+# ─────────────────────────────────────────────
+# CD4 subgroup (only 4 studies)
+# ─────────────────────────────────────────────
+CD4_df <- typhoid %>% filter(!is.na(CD4))
+
+CD4_meta_analysis <- metabin(
+  event.e = TF_HIV,
+  n.e     = Total_HIV,
+  event.c = TF_NO_HIV,
+  n.c     = Total_NO_HIV,
+  studlab = Study_ID,
+  data    = CD4_df,
+  sm      = "OR",
+  method.tau = "DL"
+)
+
+png(file.path(fig_dir, "CD4_forest.png"),
+    width = 14, height = 8, units = "in", res = 300)
+forest(CD4_meta_analysis, sortvar = TE, xlab = "Odds Ratio",
+       leftcols = c("studlab","Publication_year","event.e","n.e","event.c","n.c"),
+       leftlabs = c("Authors","Year","TF","No TF","TF","No TF"),
+       rightcols = c("effect","ci"), rightlabs = c("OR","95% CI"),
+       xlim = c(0.01,10), alim = c(0.01,10), clip = c(0.01,10),
+       print.tau2 = TRUE, print.I2 = TRUE,
+       common = FALSE, label.e = "PLHIV", label.c = "HIV-negative",
+       col.square = "#af8dc3", col.diamond = "#7fbf7b",
+       cex.lab = 1.2, spacing = 1.25,
+       colgap.forest.left = "1.5cm", colgap.left = "0.5cm",
+       colgap.forest.right = "1.5cm")
+dev.off()
+
+meta_reg_cd4 <- metareg(CD4_meta_analysis, ~ CD4)
+
+png(file.path(fig_dir, "CD4_bubble.png"),
+    width = 14, height = 8, units = "in", res = 300)
+bubble(meta_reg_cd4, xlab = "CD4 Count",
+       col.line = "red", col.bubbles = "lightblue", bg.bubbles = "lightblue")
+legend("topright", inset = c(-0.3, 0),
+       legend = c("Small","Medium","Large"),
+       pch = 21, pt.bg = "lightblue", col = "black",
+       pt.cex = c(1,2,3), title = "Study Weight")
+dev.off()
+
+meta_reg_cd4
+
+# ─────────────────────────────────────────────
+# Co-trimoxazole-resistant isolates
+# ─────────────────────────────────────────────
+cotrim_df <- typhoid %>% filter(resistance == "Y")
+
+cotrim_meta_analysis <- metabin(
+  event.e = TF_HIV, n.e = Total_HIV,
+  event.c = TF_NO_HIV, n.c = Total_NO_HIV,
+  studlab = Study_ID, data = cotrim_df,
+  sm = "OR", method.tau = "DL"
+)
+
+png(file.path(fig_dir, "cotrimoxazole_forest.png"),
+    width = 14, height = 8, units = "in", res = 300)
+forest(cotrim_meta_analysis, sortvar = TE, xlab = "Odds Ratio",
+       leftcols = c("studlab","Publication_year","event.e","n.e","event.c","n.c"),
+       leftlabs = c("Authors","Year","TF","No TF","TF","No TF"),
+       rightcols = c("effect","ci"), rightlabs = c("OR","95% CI"),
+       xlim = c(0.01,10), alim = c(0.01,10), clip = c(0.01,10),
+       print.tau2 = TRUE, print.I2 = TRUE,
+       common = FALSE, label.e = "PLHIV", label.c = "HIV-negative",
+       col.square = "#af8dc3", col.diamond = "#7fbf7b",
+       cex.lab = 1.2, spacing = 1.25,
+       colgap.forest.left = "1.5cm", colgap.left = "0.5cm",
+       colgap.forest.right = "1.5cm")
+dev.off()
+
+# ─────────────────────────────────────────────
+# Typhoid: pre-ART vs post-ART subgroup
+# ─────────────────────────────────────────────
+typhoid <- typhoid %>%
+  mutate(collection_midpoint = ymd(paste0(collection_midpoint, "-01")),
+         ART = if_else(collection_midpoint < ymd("2004-01-01"),
+                       "pre-ART", "post-ART"))
+
+colnames(typhoid)[colnames(typhoid) == "ART"] <- "National ART Status"
+typhoid$`National ART Status` <- factor(typhoid$`National ART Status`,
+                                        levels = c("pre-ART","post-ART"))
+
+meta_analysis_ART_status <- metabin(
+  event.e = TF_HIV, n.e = Total_HIV,
+  event.c = TF_NO_HIV, n.c = Total_NO_HIV,
+  studlab = Study_ID, data = typhoid,
+  sm = "OR", method.tau = "DL",
+  subgroup = `National ART Status`
+)
+
+tiff(file.path(fig_dir, "Figure4_ART_Subgroup_ForestPlot.tiff"),
+     width = 14, height = 10, units = "in", res = 600, compression = "lzw")
+forest(meta_analysis_ART_status, sortvar = TE,
+       xlab = "Odds Ratio (log scale)",
+       leftcols = c("studlab","Publication_year","event.e","n.e","event.c","n.c"),
+       leftlabs = c("Authors","Year","TF (PLHIV)","No TF","TF (HIV-)","No TF"),
+       rightcols = c("effect","ci"), rightlabs = c("OR","95% CI"),
+       xlim = c(0.01,10), alim = c(0.01,10), clip = c(0.01,10),
+       print.tau2 = TRUE, print.I2 = TRUE,
+       common = FALSE, label.e = "PLHIV", label.c = "HIV-negative",
+       col.square = "#af8dc3", col.diamond = "#7fbf7b",
+       cex.lab = 1.2, spacing = 1.25,
+       colgap.forest.left = "1.5cm", colgap.left = "1.5cm",
+       colgap.forest.right = "1.5cm")
+dev.off()
+
+pdf(file.path(fig_dir, "Figure4_ART_Subgroup_ForestPlot.pdf"),
+    width = 14, height = 10)
+forest(meta_analysis_ART_status, sortvar = TE,
+       xlab = "Odds Ratio (log scale)",
+       leftcols = c("studlab","Publication_year","event.e","n.e","event.c","n.c"),
+       leftlabs = c("Authors","Year","TF (PLHIV)","No TF","TF (HIV-)","No TF"),
+       rightcols = c("effect","ci"), rightlabs = c("OR","95% CI"),
+       xlim = c(0.01,10), alim = c(0.01,10), clip = c(0.01,10),
+       print.tau2 = TRUE, print.I2 = TRUE,
+       common = FALSE, label.e = "PLHIV", label.c = "HIV-negative",
+       col.square = "#af8dc3", col.diamond = "#7fbf7b",
+       cex.lab = 1.2, spacing = 1.25,
+       colgap.forest.left = "1.5cm", colgap.left = "1.5cm",
+       colgap.forest.right = "1.5cm")
+dev.off()
+
+# ─────────────────────────────────────────────
+# NTS: add ART era & collection midpoint
+# ─────────────────────────────────────────────
+NTS <- NTS %>%
+  mutate(Start_date = my(Start), End_date = my(End),
+         collection_midpoint = floor_date(Start_date + (End_date - Start_date)/2, "month"),
+         collection_midpoint = ymd(paste0(format(collection_midpoint, "%Y-%m"), "-01")),
+         ART = if_else(collection_midpoint < ymd("2004-01-01"),
+                       "pre-ART","post-ART"))
+
+colnames(NTS)[colnames(NTS) == "ART"] <- "National ART Status"
+NTS$`National ART Status` <- factor(NTS$`National ART Status`,
+                                    levels = c("pre-ART","post-ART"))
+
+meta_analysis_NTS_ART_status <- metabin(
+  event.e = NTS_HIV, n.e = Total_HIV,
+  event.c = NTS_NO_HIV, n.c = Total_NO_HIV,
+  studlab = Study_ID, data = NTS,
+  sm = "OR", method.tau = "DL",
+  subgroup = `National ART Status`
+)
+
+png(file.path(fig_dir, "NTS_ART_status.png"),
+    width = 14, height = 10, units = "in", res = 300)
+forest(meta_analysis_NTS_ART_status, sortvar = TE,
+       xlab = "Odds Ratio",
+       leftcols = c("studlab","Publication_year","event.e","n.e","event.c","n.c"),
+       leftlabs = c("Authors","Year","iNTS","No iNTS","iNTS","No iNTS"),
+       rightcols = c("effect","ci"), rightlabs = c("OR","95% CI"),
+       xlim = c(0.01,10), alim = c(0.01,10), clip = c(0.01,10),
+       print.tau2 = TRUE, print.I2 = TRUE,
+       common = FALSE, label.e = "PLHIV", label.c = "HIV-negative",
+       col.square = "#af8dc3", col.diamond = "#7fbf7b",
+       cex.lab = 1.2, spacing = 1.25,
+       colgap.forest.left = "1.5cm", colgap.left = "1.5cm",
+       colgap.forest.right = "1.5cm")
+dev.off()
+# ─────────────────────────────────────────────
+# NTS: paediatric vs adult
+# ─────────────────────────────────────────────
+colnames(NTS)[colnames(NTS) == "Cohort"] <- "Study Population"
+NTS$`Study Population` <- factor(NTS$`Study Population`,
+                                 levels = c("Paediatric", "Adult"))
+
+meta_analysis_NTS_paeds_adult <- metabin(
+  event.e = NTS_HIV, n.e = Total_HIV,
+  event.c = NTS_NO_HIV, n.c = Total_NO_HIV,
+  studlab = Study_ID, data = NTS,
+  sm = "OR", method.tau = "DL",
+  subgroup = `Study Population`
+)
+
+png(file.path(fig_dir, "NTS_child_vs_adult.png"),
+    width = 14, height = 10, units = "in", res = 300)
+forest(meta_analysis_NTS_paeds_adult, sortvar = TE, xlab = "Odds Ratio",
+       leftcols = c("studlab","Publication_year","event.e","n.e","event.c","n.c"),
+       leftlabs = c("Authors","Year","iNTS","No iNTS","iNTS","No iNTS"),
+       rightcols = c("effect","ci"), rightlabs = c("OR","95% CI"),
+       xlim = c(0.01,10), alim = c(0.01,10), clip = c(0.01,10),
+       print.tau2 = TRUE, print.I2 = TRUE,
+       common = FALSE, label.e = "PLHIV", label.c = "HIV-negative",
+       col.square = "#0072B2", col.diamond = "#009E73",
+       cex.lab = 1.2, spacing = 1.25,
+       colgap.forest.left = "1.5cm", colgap.left = "1.5cm",
+       colgap.forest.right = "1.5cm")
+dev.off()
+
